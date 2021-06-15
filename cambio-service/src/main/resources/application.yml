@@ -1,0 +1,19 @@
+server:
+  port: 8000
+spring:
+  application:
+    name: cambio-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/cambio_service
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+flyway:
+  url: jdbc:postgresql://localhost:5432/
+  schemas: cambio_service
+  user: postgres
+  password: postgres
