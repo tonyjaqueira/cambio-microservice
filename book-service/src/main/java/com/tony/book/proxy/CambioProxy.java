@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import com.tony.book.response.Cambio;
 
-@FeignClient(name="cambio-service", url="localhost:8000") //informações do seviço que iremos consumir
+@FeignClient(name="cambio-service") //informações do seviço que iremos consumir
 public interface CambioProxy {
 
 	@GetMapping(value = "/cambio-service/{amount}/{from}/{to}")
