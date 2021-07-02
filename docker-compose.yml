@@ -1,0 +1,113 @@
+version: '3.4' #versão do arquivo docker-compose, podse ser qualqer
+
+services:
+  zipkin-server:
+    image: openzipkin/zipkin:2.23.2
+    ports:
+      - 9411:9411
+    networks:
+      - tony-network
+  
+  cambio-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres 
+      POSTGRES_DB: cambio_service
+    ports:
+      - 5436:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - tony-network
+      
+  book-db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres 
+      POSTGRES_DB: book_service
+    ports:
+      - 5437:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - tony-network
+              
+  naming-server:
+    image: tonyjaqueira/naming-service:0.0.1-SNAPSHOT
+    ports:
+      - 8761:8761
+    networks:
+      - tony-network #adicionando a rede no nosso projeto
+  
+  api-gateway:
+    image: tonyjaqueira/api-gatway:0.0.1-SNAPSHOT
+    ports:
+      - 8765:8765
+    depends_on:
+      - naming-server # dizendo que esse serviço depende do serviço naming-service
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka #naming-server é o nome do serviço que foi declarado acima
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/  #zipkin-server é o nome do serviço que foi declarado acima. Tando essa como a URL acima veio da estrutura declarada de cada aplication.yml de cada projeot (zipking e namin-service)
+    networks:
+      - tony-network
+
+  cambio-service:
+    image: tonyjaqueira/cambio-service
+    restart: always
+    build:
+      context: .
+      dockerfile: cambio-service/Dockerfile
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://cambio-db:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.USERNAME: postgres
+      SPRING.DATASOURCE.PASSWORD: postgres
+      SPRING.FLYWAY.URL: jdbc:postgresql://cambio-db:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.USER: postgres
+      SPRING.FLYWAY.PASSWORD: postgres
+    ports:
+      - 8000:8000
+    depends_on:
+      - naming-server
+      - cambio-db
+    networks:
+      - tony-network
+
+  book-service:
+    image: tonyjaqueira/book-service
+    restart: always
+    build:
+      context: .
+      dockerfile: book-service/Dockerfile
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      SPRING.DATASOURCE.URL: jdbc:postgresql://book-db:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.USERNAME: postgres
+      SPRING.DATASOURCE.PASSWORD: postgres
+      SPRING.FLYWAY.URL: jdbc:postgresql://book-db:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.USER: postgres
+      SPRING.FLYWAY.PASSWORD: postgres
+    ports:
+      - 8100:8100
+    depends_on:
+      - naming-server
+      - book-db
+    networks:
+      - tony-network      
+
+      
+volumes:
+    postgres_data:
+  
+networks:
+  tony-network: #criando uma rede para nosso projeto
+    driver: bridge
+

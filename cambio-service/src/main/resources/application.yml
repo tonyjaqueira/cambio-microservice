@@ -16,8 +16,16 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
-flyway:
-  url: jdbc:postgresql://localhost:5432/
-  schemas: cambio_service
-  user: postgres
+  flyway:
+    url: jdbc:postgresql://localhost:5432/
+    schemas: cambio_service
+    user: postgres
+    password: postgres
+  sleuth:
+    sampler:
+      probability: 1.0 #vai grvar 100% do log
   password: postgres
+springdoc:
+  api-docs:
+    path: cambio-service/v3/api-docs
+    #configuração para roteamento do swagger no gateway

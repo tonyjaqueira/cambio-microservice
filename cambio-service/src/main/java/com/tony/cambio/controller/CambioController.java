@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tony.cambio.model.Cambio;
 import com.tony.cambio.repository.CambioRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name="Câmbio EndePoint") //para documentação Swagger
 @RestController
 @RequestMapping("cambio-service")
 public class CambioController {
@@ -24,6 +28,7 @@ public class CambioController {
 	@Autowired
 	private CambioRepository repository;
 
+	@Operation(description = "Faz a conversão do câmbio") //descrição do end-point para o Swagger
 	@GetMapping(value = "/{amount}/{from}/{to}")
 	public Cambio getCambio(@PathVariable("amount") BigDecimal amount, 
 			@PathVariable("from") String from, 
