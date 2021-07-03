@@ -1,0 +1,78 @@
+name: Continuos Inegrations Tony
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+on: [push]
+  
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Login no DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{secrets.DOCKER_USERNAME}}
+          password: ${{secrets.DOCKER_PASSWORD}}
+      
+      - name: Setup Java JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '8' 
+          distribution: 'adopt'
+          
+      - name: Build Eureka naming-serve Container Image
+        working-directory: ./naming-service
+        run: mvn spring-boot:build-image -DskipTests
+        
+      - name: Build API-Gateway Container Image
+        working-directory: ./api-gatway
+        run: mvn spring-boot:build-image -DskipTests
+        
+        #como criamso a image dos serviços de cambio e bokk pelo docker compose, as configurações são distintas dos serviços acima
+        #aqui diferente de api e naming-serve, geramos os JAR's e no final chamamos o compose para gerar as images
+      - name: Build Cambio Microservice Jar
+        working-directory: ./cambio-service
+        run: mvn clean package -DskipTests
+
+      - name: Build Book Microservice Jar
+        working-directory: ./book-service
+        run: mvn clean package -DskipTests
+        
+        #chamando o compose para gerar as images de Cambio e Book service
+      - name: Docker Compose Build
+        working-directory: ./
+        run: docker-compose build
+        
+        #chamando comando para fazer push das images para o docker Hub.
+      - name: Push para o Docker Hub Container Registry
+        #aqui passamos o nome e versões das asplicações que são vistas no docker como comando "docker ps" e no final o github vai definir uma nova versão implantada com o "github.run_id"
+        #tbm fazemos o "push" aqui são 4, para que as images vão para o registry docker hub
+        run: |
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-service:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-service:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gatway:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/api-gatway:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gatway:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/api-gatway:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/cambio-service:latest ${{ secrets.DOCKER_USERNAME }}/cambio-service:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/book-service:latest ${{ secrets.DOCKER_USERNAME }}/book-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gatway:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gatway:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/cambio-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/cambio-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:latest
+  
+
+     

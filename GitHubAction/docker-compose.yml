@@ -1,0 +1,128 @@
+version: '3.4' #versão do arquivo docker-compose, podse ser qualqer
+
+services:
+  zipkin-server:
+    image: openzipkin/zipkin:2.23.2
+    ports:
+      - 9411:9411
+    restart: always
+    depends_on:
+      - rabbit-mq
+    environment:
+      RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
+    networks:
+      - tony-network
+      
+  rabbit-mq:
+    image: rabbitmq:3.8.14-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - tony-network
+  
+  db-app:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres 
+      POSTGRES_PASSWORD: postgres 
+      POSTGRES_MULTIPLE_DATABASES: cambio_service,book_service
+    ports:
+      - 5436:5432
+    volumes:
+      - ./createdatabse.sql:/docker-entrypoint-initdb.d/createdatabse.sql
+    networks:
+      - tony-network
+      
+  #book-db:
+  #  image: postgres:latest
+  #  restart: always
+  #  environment:
+  #    POSTGRES_USER: postgres 
+  #    POSTGRES_PASSWORD: postgres 
+  #    POSTGRES_DB: book_service
+  #  ports:
+  #    - 5437:5432
+  #  volumes:
+  #    - postgres_data:/var/lib/postgresql/data/
+  #  networks:
+  #    - tony-network
+              
+  naming-server:
+    image: tonyjaqueira/naming-service:latest
+    ports:
+      - 8761:8761
+    networks:
+      - tony-network #adicionando a rede no nosso projeto
+  
+  api-gateway:
+    image: tonyjaqueira/api-gatway:latest
+    ports:
+      - 8765:8765
+    depends_on:
+      - naming-server # dizendo que esse serviço depende do serviço naming-service
+      - rabbit-mq
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka #naming-server é o nome do serviço que foi declarado acima
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/  #zipkin-server é o nome do serviço que foi declarado acima. Tando essa como a URL acima veio da estrutura declarada de cada aplication.yml de cada projeot (zipking e namin-service)
+      RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
+      SPRING_RABBITMQ_HOST: rabbit-mq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
+    networks:
+      - tony-network
+
+  cambio-service:
+    image: tonyjaqueira/cambio-service:latest
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
+      SPRING_RABBITMQ_HOST: rabbit-mq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
+      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.USERNAME: postgres
+      SPRING.DATASOURCE.PASSWORD: postgres
+      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.USER: postgres
+      SPRING.FLYWAY.PASSWORD: postgres
+    ports:
+      - 8000:8000
+    depends_on:
+      - naming-server
+      - db-app
+      - rabbit-mq
+    networks:
+      - tony-network
+
+  book-service:
+    image: tonyjaqueira/book-service:latest
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
+      SPRING_RABBITMQ_HOST: rabbit-mq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
+      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.USERNAME: postgres
+      SPRING.DATASOURCE.PASSWORD: postgres
+      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.USER: postgres
+      SPRING.FLYWAY.PASSWORD: postgres
+    ports:
+      - 8100:8100
+    depends_on:
+      - naming-server
+      - db-app
+      - rabbit-mq
+    networks:
+      - tony-network      
+  
+networks:
+  tony-network: #criando uma rede para nosso projeto
+    driver: bridge
+
