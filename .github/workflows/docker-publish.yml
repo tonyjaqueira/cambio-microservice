@@ -29,10 +29,10 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8' 
-          #distribution: 'adopt'
+          distribution: 'adopt'
           
       - name: Build Eureka naming-serve
-        working-directory: ./cambio-microservice/naming-service
+        working-directory: .tonyjaqueira/cambio-microservice/naming-service
         run: mvn spring-boot:build-image -DskipTests
   
 
