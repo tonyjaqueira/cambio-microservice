@@ -31,8 +31,12 @@ jobs:
           java-version: '8' 
           distribution: 'adopt'
           
-      - name: Build Eureka naming-serve
-        working-directory: .tonyjaqueira/cambio-microservice/naming-service
+      - name: Build Eureka naming-serve Container Image
+        working-directory: ./cambio-microservice/naming-service
+        run: mvn spring-boot:build-image -DskipTests
+        
+      - name: Build API-Gateway Container Image
+        working-directory: ./cambio-microservice/api-gatway
         run: mvn spring-boot:build-image -DskipTests
   
 
