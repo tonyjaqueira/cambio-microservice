@@ -53,6 +53,22 @@ jobs:
       - name: Docker Compose Build
         working-directory: ./
         run: docker-compose build
+        
+        #chamando comando para fazer push das images para o docker Hub.
+      - name: Push para o Docker Hub Container Registry
+        #aqui passamos o nome e versões das asplicações que são vistas no docker como comando "docker ps" e no final o github vai definir uma nova versão implantada com o "github.run_id"
+        #tbm fazemos o "push" aqui são 4, para que as images vão para o registry docker hub
+        run: |
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-server:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT ${{ 
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT ${{ 
+          docker tag ${{ secrets.DOCKER_USERNAME }}/cambio-service:latest ${{ secrets.DOCKER_USERNAME }}/cambio-service:${{github.run_id}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/book-service:latest ${{ secrets.DOCKER_USERNAME }}/book-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/cambio-service:${{github.run_id}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:${{github.run_id}}
   
 
      
