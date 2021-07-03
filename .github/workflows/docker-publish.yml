@@ -38,6 +38,21 @@ jobs:
       - name: Build API-Gateway Container Image
         working-directory: ./api-gatway
         run: mvn spring-boot:build-image -DskipTests
+        
+        #como criamso a image dos serviços de cambio e bokk pelo docker compose, as configurações são distintas dos serviços acima
+        #aqui diferente de api e naming-serve, geramos os JAR's e no final chamamos o compose para gerar as images
+      - name: Build Cambio Microservice Jar
+        working-directory: ./cambio-service
+        run: mvn clean package -DskipTests
+
+      - name: Build Book Microservice Jar
+        working-directory: ./book-service
+        run: mvn clean package -DskipTests
+        
+        #chamando o compose para gerar as images de Cambio e Book service
+      - name: Docker Compose Build
+        working-directory: ./cambio-microservice
+        run: docker-compose build
   
 
      
