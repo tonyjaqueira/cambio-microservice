@@ -51,7 +51,7 @@ jobs:
         
         #chamando o compose para gerar as images de Cambio e Book service
       - name: Docker Compose Build
-        working-directory: ./cambio-microservice
+        working-directory: ./
         run: docker-compose build
   
 
