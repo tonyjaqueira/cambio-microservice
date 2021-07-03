@@ -85,10 +85,10 @@ services:
       RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
       SPRING_RABBITMQ_HOST: rabbit-mq
       SPRING_ZIPKIN_SENDER_TYPE: rabbit
-      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/cambio_service?currentSchema=cambio_service&useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
       SPRING.DATASOURCE.USERNAME: postgres
       SPRING.DATASOURCE.PASSWORD: postgres
-      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/cambio_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/cambio_service?currentSchema=cambio_service&useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
       SPRING.FLYWAY.USER: postgres
       SPRING.FLYWAY.PASSWORD: postgres
     ports:
@@ -113,10 +113,10 @@ services:
       RABBIT_URI: amqp://guest:guest@rabbit-mq:5672
       SPRING_RABBITMQ_HOST: rabbit-mq
       SPRING_ZIPKIN_SENDER_TYPE: rabbit
-      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.DATASOURCE.URL: jdbc:postgresql://db-app:5432/book_service?currentSchema=book_service&useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
       SPRING.DATASOURCE.USERNAME: postgres
       SPRING.DATASOURCE.PASSWORD: postgres
-      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/book_service?useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
+      SPRING.FLYWAY.URL: jdbc:postgresql://db-app:5432/book_service?currentSchema=book_service&useSSL=false&serverTimezone=UTC&enabledTLSProtocols=TLSv1.2
       SPRING.FLYWAY.USER: postgres
       SPRING.FLYWAY.PASSWORD: postgres
     ports:
